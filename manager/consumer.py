@@ -18,17 +18,19 @@ def handle_event(id: str, details: dict):
 
     if details['operation'] == 'blob_committed':
         # blob stored, now request the blob verification
-        details['operation'] = 'verification_requested'
-        details['deliver_to'] = 'verifier'
-        delivery_required = True
+        # !!! HACK imitation !!! 
+        # skip the verification step and try to update the target
+    #     details['operation'] = 'verification_requested'
+    #     details['deliver_to'] = 'verifier'
+    #     delivery_required = True
 
-    if details['operation'] == 'handle_verification_result':
-        if details['verified'] is True:
-            details['operation'] = 'proceed_with_update'
-            details['deliver_to'] = 'updater'
-            delivery_required = True
-        else:
-            print(f"[error] verification failed, update aborted. Update id: {id}")
+    # if details['operation'] == 'handle_verification_result':
+    #     if details['verified'] is True:
+        details['operation'] = 'proceed_with_update'
+        details['deliver_to'] = 'updater'
+        delivery_required = True
+        # else:
+        #     print(f"[error] verification failed, update aborted. Update id: {id}")
 
     if delivery_required:
         proceed_to_deliver(id, details)
