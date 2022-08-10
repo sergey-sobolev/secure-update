@@ -46,7 +46,7 @@ def consumer_job(args, config):
                 # print("Waiting...")
                 pass
             elif msg.error():
-                print("[error] %s".format(msg.error()))
+                print(f"[error] {msg.error()}")
             else:
                 # Extract the (optional) key and value, and print.
                 try:
