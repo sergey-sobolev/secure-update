@@ -139,3 +139,6 @@ run-updater:
 
 run-updater-screen:
 	screen -dmS updater bash -c "cd $(PATH_PREFIX)/secure-updater; pipenv run updater/updater.py config.ini"
+
+test:
+	pytest -sv	
