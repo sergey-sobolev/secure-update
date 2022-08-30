@@ -1,0 +1,35 @@
+@startuml
+
+
+rectangle {
+    rectangle Update
+    rectangle Application
+}
+
+:User: --> Application: using HTTP accesses
+Application <- Update: updates files of
+
+rectangle Manager
+rectangle "File server" as server
+rectangle Downloader as downloader
+rectangle Verifier
+rectangle Storage
+rectangle "Message bus" as kafka
+rectangle "Security monitor" as monitor
+artifact "application update" as update
+artifact "update files" as updates
+
+update ..> server: stored by
+:User: ..> server: using REST\nrequests update digest from
+downloader -up-> server: using HTTP\ndownloads from
+updates ..> Storage: stored by
+
+Update -down-> kafka
+downloader -down-> kafka
+Storage -down-> kafka
+Manager -down-> kafka
+Verifier -down-> kafka
+monitor -up-> kafka
+
+
+@enduml
