@@ -1,0 +1,36 @@
+@startuml "Hacked-manager2"
+title Негативный сценарий: Manager игнорирует результат проверки прошивки
+
+actor "Пользователь" as u
+participant Downloader
+participant Manager #red
+participant Storage
+participant Verifier
+participant Updater
+
+
+
+u -> Manager: старт процесса
+Manager -> Downloader++: чтение данных
+Downloader --> Manager--
+Manager -> Storage++: запись данных
+Storage --> Manager--
+Manager -> Verifier++: команда на проверку данных
+Verifier -> Storage--: чтение данных
+activate Storage
+Storage --> Verifier--
+activate Verifier
+Verifier -> Verifier: проверка
+Verifier --> Manager--
+Manager -[#red]-> Manager: пропущен анализ результатов проверки
+Manager -> Updater++: команда на обновление прошивки
+Updater -> Storage: чтение данных
+deactivate Updater
+activate Storage
+Storage --> Updater
+deactivate Storage
+activate Updater
+Updater -> Updater: обновление
+
+
+@enduml

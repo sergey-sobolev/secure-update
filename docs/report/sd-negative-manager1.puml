@@ -1,0 +1,29 @@
+@startuml "Hacked-manager1"
+title Негативный сценарий: Manager не проверяет прошивки
+
+actor "Пользователь" as u
+participant Downloader
+participant Manager #red
+participant Storage
+participant Verifier
+participant Updater
+
+
+
+u -> Manager: старт процесса
+Manager -> Downloader++: чтение данных
+Downloader --> Manager--
+Manager -> Storage++: запись данных
+Storage --> Manager--
+Manager -[#red]> Updater--: команда на обновление прошивки
+activate Updater
+Updater -> Storage: чтение данных
+deactivate Updater
+activate Storage
+Storage --> Updater
+deactivate Storage
+activate Updater
+Updater -> Updater: обновление
+
+
+@enduml

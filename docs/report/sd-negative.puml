@@ -1,0 +1,54 @@
+@startuml
+
+actor "Пользователь" as u
+participant Downloader
+participant Manager
+participant Manager
+participant Storage
+participant Verifier
+participant Updater
+
+
+u -> Manager: старт процесса
+Manager -> Downloader++: чтение данных
+Downloader --> Manager--
+Manager -> Storage++: запись данных
+Storage --> Manager--
+note over Manager #red
+"забыл" послать
+запрос на проверку
+end note
+Manager -> Verifier++: команда на проверку данных
+Verifier -> Storage--: чтение данных
+activate Storage
+Storage --> Verifier--
+activate Verifier
+Verifier -> Verifier: проверка
+Verifier --> Manager--
+Manager -> Manager: анализ результатов проверки
+note over Manager #red
+проигнорировал
+результаты проверки,
+всегда успешная
+end note
+alt успешная проверка
+activate Manager
+note over Storage #red
+данные обновления
+изменили после проверки
+end note
+
+Manager -> Updater--: команда на обновление прошивки
+activate Updater
+Updater -> Storage: чтение данных
+deactivate Updater
+activate Storage
+Storage --> Updater
+deactivate Storage
+activate Updater
+Updater -> Updater: обновление
+else ошибка проверки
+Manager -> Manager: регистрация ошибки
+end
+
+@enduml
