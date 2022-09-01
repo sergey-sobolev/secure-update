@@ -21,6 +21,8 @@ Storage --> Verifier--
 activate Verifier
 Verifier -> Verifier: проверка
 Verifier --> Manager--
+Manager -> Manager: анализ результатов проверки
+alt успешная проверка
 Manager -> Updater++: команда на обновление прошивки
 Updater -> Storage: чтение данных
 deactivate Updater
@@ -29,6 +31,9 @@ Storage --> Updater
 deactivate Storage
 activate Updater
 Updater -> Updater: обновление
+else ошибка проверки
+Manager -> Manager: регистрация ошибки
+end
 
 
 @enduml

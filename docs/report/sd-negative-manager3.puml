@@ -1,12 +1,13 @@
-@startuml
+@startuml "Hacked-manager3"
+title Негативный сценарий: Storage подменяет файл после проверки
 
 actor "Пользователь" as u
 participant Downloader
-participant Manager
-participant Manager
-participant Storage
+participant Manager 
+participant Storage #red
 participant Verifier
 participant Updater
+
 
 
 u -> Manager: старт процесса
@@ -14,10 +15,6 @@ Manager -> Downloader++: чтение данных
 Downloader --> Manager--
 Manager -> Storage++: запись данных
 Storage --> Manager--
-note over Manager #red
-"забыл" послать
-запрос на проверку
-end note
 Manager -> Verifier++: команда на проверку данных
 Verifier -> Storage--: чтение данных
 activate Storage
@@ -26,20 +23,8 @@ activate Verifier
 Verifier -> Verifier: проверка
 Verifier --> Manager--
 Manager -> Manager: анализ результатов проверки
-note over Manager #red
-проигнорировал
-результаты проверки,
-всегда успешная
-end note
-alt успешная проверка
-activate Manager
-note over Storage #red
-данные обновления
-изменили после проверки
-end note
-
-Manager -> Updater--: команда на обновление прошивки
-activate Updater
+Storage -[#red]> Storage: изменение файла
+Manager -> Updater++: команда на обновление прошивки
 Updater -> Storage: чтение данных
 deactivate Updater
 activate Storage
@@ -47,8 +32,5 @@ Storage --> Updater
 deactivate Storage
 activate Updater
 Updater -> Updater: обновление
-else ошибка проверки
-Manager -> Manager: регистрация ошибки
-end
 
 @enduml
