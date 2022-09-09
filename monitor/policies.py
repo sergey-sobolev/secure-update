@@ -39,6 +39,11 @@ def check_operation(id, details):
         authorized = True
     if src == 'storage' and dst == 'updater' \
         and operation == 'blob_content':
-        authorized = True    
+        authorized = True
+    # kea - Kafka events analyzer - an extra service for internal monitoring,
+    # can only communicate with itself
+    if src == 'kea' and dst == 'kea' \
+        and (operation == 'self_test' or operation == 'test_param'):
+        authorized = True
     
     return authorized

@@ -81,6 +81,12 @@ run:
 restart:
 	docker-compose restart
 
+stop:
+	docker-compose stop
+
+logs:
+	docker-compose logs -f --tail 100
+
 stop-app:
 	pkill flask
 
