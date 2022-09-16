@@ -1,0 +1,70 @@
+@startuml dfd-tcb
+
+skinparam card {
+    RoundCorner 25    
+}
+
+legend right
+    | Цвет | Тип |
+    |<#lightgreen> | Доверенный компонент |
+    |<#pink>| Недоверенный компонент |
+endlegend
+
+rectangle {
+    (Update) #pink
+    (Application) #pink
+}
+
+rectangle {
+    (Message bus [MB]) as kafka #lightgreen
+    (Security monitor) as monitor #lightgreen
+    monitor <-up-> kafka
+}
+note "вся внутренняя коммуникация\nпроходит через эти системные сущности" as n1
+n1 -[hidden]d-> kafka 
+
+
+:User: --> Application: использует\n(* HTTP)
+Application <-down- Update: обновляет файлы
+
+(Manager) #pink
+(File server) as server #pink 
+(Downloader) as downloader #pink 
+(Verifier) #lightgreen
+(Storage) #pink
+
+card "Запрашивает обновление\n(* HTTP)" as userUpdateRequest
+card "Запрос на скачивание обновления\n(* MB)" as downloadRequest
+card "Запрашивает проверку обновления\n(* MB)" as verificationRequest
+card "Запрашивает запись файла обновления\n(* MB)" as managerWriteRequest
+card "Запрашивает файл обновления\n(* MB)" as verificationReadRequest
+card "Запрашивает файл обновления\n(* MB)" as updateReadRequest
+card "Запрашивает обновление\n(* MB)" as managerUpdateRequest
+card "Скачивает файл\n(* HTTP)" as serverDownloadRequest
+
+
+
+
+User --> userUpdateRequest 
+Manager <-up- userUpdateRequest
+Manager -up-> downloadRequest 
+downloadRequest -up-> downloader
+downloader -up-> serverDownloadRequest
+server <-- serverDownloadRequest
+downloader <.up. server
+Manager <.up. downloader
+Manager -down-> managerWriteRequest
+managerWriteRequest -> Storage
+verificationRequest <-left- Manager
+Verifier <- verificationRequest
+Verifier -up-> verificationReadRequest
+Manager <.down. Verifier
+verificationReadRequest -up-> Storage
+Verifier <.. Storage
+Update -down-> updateReadRequest
+updateReadRequest -down-> Storage
+Update <.down. Storage
+managerUpdateRequest <-- Manager
+Update <-- managerUpdateRequest
+
+@enduml
