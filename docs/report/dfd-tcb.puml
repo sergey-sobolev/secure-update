@@ -5,9 +5,11 @@ skinparam card {
 }
 
 legend right
-    | Цвет | Тип |
+    | Цвет/\n Вид | Тип |
     |<#lightgreen> | Доверенный компонент |
     |<#pink>| Недоверенный компонент |
+    |<color:black><size:26><&arrow-right></size></color>| запрос |
+    |<color:black><size:24><U+21E2></size></color>| ответ |
 endlegend
 
 rectangle {

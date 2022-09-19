@@ -2,25 +2,25 @@
 
 legend right
     | Цвет | Тип |
-    | <#pink> | Доверенный компонент |
+    |<#lightgreen>| Доверенный компонент |
     |<#lightgray>| Недоверенный компонент |
 endlegend
 
 rectangle {
-    rectangle Update
-    rectangle Application
+    (Update)
+    (Application)
 }
 
 :User: ---> Application: используя HTTP,\nработает с
 Application <- Update: обновляет файлы
 
-rectangle Manager
-rectangle "File server" as server
-rectangle Downloader as downloader
-rectangle #pink Verifier
-rectangle Storage
-rectangle #pink "\t\t\t\t\t\tMessage bus\t\t\t\t\t\t\t" as kafka
-rectangle #pink "Security monitor" as monitor
+(Manager)
+(File server) as server
+(Downloader) as downloader
+(Verifier) #lightgreen
+(Storage)
+(Message bus) as kafka #lightgreen
+(Security monitor) as monitor #lightgreen 
 artifact "application update" as update
 artifact "update files" as updates
 

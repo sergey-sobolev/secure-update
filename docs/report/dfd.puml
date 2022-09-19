@@ -2,20 +2,20 @@
 
 
 rectangle {
-    rectangle Update
-    rectangle Application
+    (Update)
+    (Application)
 }
 
 :User: --> Application: using HTTP accesses
 Application <- Update: updates files of
 
-rectangle Manager
-rectangle "File server" as server
-rectangle Downloader as downloader
-rectangle Verifier
-rectangle Storage
-rectangle "Message bus" as kafka
-rectangle "Security monitor" as monitor
+(Manager)
+(File server) as server
+(Downloader) as downloader
+(Verifier)
+(Storage)
+(Message bus) as kafka
+(Security monitor) as monitor
 artifact "application update" as update
 artifact "update files" as updates
 
