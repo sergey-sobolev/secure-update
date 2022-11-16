@@ -6,8 +6,8 @@ from urllib.request import urlopen, Request
 from uuid import uuid1
 
 APP_URL = "http://localhost:5000"
-FILE_SERVER_URL = "http://localhost:6001"
-MANAGER_URL = "http://localhost:6000"
+FILE_SERVER_URL = "http://localhost:5001"
+MANAGER_URL = "http://localhost:5002"
 
 APP_UPDATE_FILE = "file_server/data/app-update.py"
 
@@ -116,7 +116,7 @@ def test_modified_digest(update_app_version, update_digest):
 
 def update_app_to_version(version, validate = True):
     FILE_SERVER_UPDATE_PATHNAME = "/download-update/app-update.zip"    
-    FILE_SERVER_URL_DOCKER = "http://file_server:6001"
+    FILE_SERVER_URL_DOCKER = "http://file_server:5001"
     MANAGER_UPDATE_PATH = "/update"
     # print(f"updating app to version {version}")
     set_update_version(version)    
@@ -134,7 +134,7 @@ def update_app_to_version(version, validate = True):
     assert resp.getcode() == 200
     if validate is True:     
         # check if the requested version is set
-        max_retries = 5
+        max_retries = 10
         app_version = None
         while max_retries > 0:
             sleep(0.5) 

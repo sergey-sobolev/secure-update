@@ -4,7 +4,7 @@ from uuid import uuid4
 import threading
 
 host_name = "0.0.0.0"
-port = 6000
+port = 5002
 
 app = Flask(__name__)             # create an app instance
 

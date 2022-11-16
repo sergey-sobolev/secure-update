@@ -1,29 +1,29 @@
 version: '3.4'
 
 services:
-  zookeeper:
+  su-zookeeper:
     image: confluentinc/cp-zookeeper:7.2.0
-    container_name: zookeeper
+    container_name: su-zookeeper
     restart: always
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_CLIENT_PORT: 2183
       ZOOKEEPER_TICK_TIME: 2000
 
-  broker:
+  su-broker:
     image: confluentinc/cp-kafka:7.2.0
-    container_name: broker
+    container_name: su-broker
     restart: always
     ports:
     # To learn about configuring Kafka for access across networks see
     # https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/
-      - "9092:9092"
+      - "9192:9192"
     depends_on:
-      - zookeeper
+      - su-zookeeper
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_ZOOKEEPER_CONNECT: 'su-zookeeper:2183'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9092,PLAINTEXT_INTERNAL://broker:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://su-broker:9192,PLAINTEXT_INTERNAL://su-broker:29192
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -34,7 +34,7 @@ services:
       context: .
       dockerfile: ./Dockerfile.app_with_updater
     depends_on:
-      - broker
+      - su-broker
     ports:
       - "5000:5000"
 
@@ -46,7 +46,7 @@ services:
     volumes:
       - ./file_server/data/:/file_server/data
     ports:
-      - "6001:6001"
+      - "5001:5001"
 
   monitor:
     image: monitor
@@ -54,7 +54,7 @@ services:
       context: .
       dockerfile: ./Dockerfile.monitor
     depends_on:
-      - broker
+      - su-broker
 
   downloader:
     image: downloader
@@ -63,7 +63,7 @@ services:
       dockerfile: ./Dockerfile.downloader    
     depends_on:
       - file_server
-      - broker
+      - su-broker
 
   storage:
     image: storage
@@ -71,7 +71,7 @@ services:
       context: .
       dockerfile: ./Dockerfile.storage
     depends_on:
-      - broker
+      - su-broker
 
   verifier:
     image: verifier
@@ -79,7 +79,7 @@ services:
       context: .
       dockerfile: ./Dockerfile.verifier
     depends_on:
-      - broker
+      - su-broker
       - storage
 
   manager:
@@ -88,11 +88,11 @@ services:
       context: .
       dockerfile: ./Dockerfile.manager
     depends_on:
-      - broker      
+      - su-broker      
       - monitor
       - downloader
       - verifier
       - storage
       - app_with_updater
     ports:
-      - "6000:6000"
+      - "5002:5002"

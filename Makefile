@@ -1,47 +1,11 @@
 PATH_PREFIX=~
-
-create-topics:
-	docker exec broker \
-  kafka-topics --create --if-not-exists \
-    --topic downloader \
-    --bootstrap-server localhost:9092 \
-    --replication-factor 1 \
-    --partitions 1
-	docker exec broker \
-  kafka-topics --create --if-not-exists \
-    --topic monitor \
-    --bootstrap-server localhost:9092 \
-    --replication-factor 1 \
-    --partitions 1
-	docker exec broker \
-  kafka-topics --create --if-not-exists \
-    --topic manager \
-    --bootstrap-server localhost:9092 \
-    --replication-factor 1 \
-    --partitions 1
-	docker exec broker \
-  kafka-topics --create --if-not-exists \
-    --topic storage \
-    --bootstrap-server localhost:9092 \
-    --replication-factor 1 \
-    --partitions 1
-	docker exec broker \
-  kafka-topics --create --if-not-exists \
-    --topic updater \
-    --bootstrap-server localhost:9092 \
-    --replication-factor 1 \
-    --partitions 1
-	docker exec broker \
-  kafka-topics --create --if-not-exists \
-    --topic verifier \
-    --bootstrap-server localhost:9092 \
-    --replication-factor 1 \
-    --partitions 1
+DISPLAY=
 
 sys-packages:
 	# sudo apt install -y docker-compose
 	sudo apt install python3-pip -y
-	sudo pip install pipenv
+	# WSL2 specific trick to prevent pip from hanging
+	DISPLAY= sudo pip -v install pipenv
 
 broker:
 	docker-compose -f kafka/docker-compose.yaml up -d
@@ -58,7 +22,7 @@ permissions:
 	chmod u+x $(PATH_PREFIX)/secure-update/verifier/verifier.py
 
 pipenv:
-	pipenv install -r requirements.txt
+	DISPLAY= pipenv install -r requirements.txt
 
 prepare: sys-packages permissions pipenv build run-broker
 
@@ -73,7 +37,7 @@ build:
 	docker-compose build
 
 run-broker:
-	docker-compose up -d zookeeper broker
+	docker-compose up -d su-zookeeper su-broker
 
 run:
 	docker-compose up -d
@@ -146,5 +110,17 @@ run-updater:
 run-updater-screen:
 	screen -dmS updater bash -c "cd $(PATH_PREFIX)/secure-update; pipenv run updater/updater.py config.ini"
 
-test:
-	pytest -sv
+clean:
+	docker-compose down
+
+test: run
+	pipenv run pytest -sv --reruns 5
+
+delay: run
+	# required for starting up all the containers
+	sleep 20
+
+delayed-test: delay test
+
+
+complete-check: clean prepare build delayed-test
