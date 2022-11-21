@@ -6,3 +6,4 @@ Pipfile.lock
 Pipfile
 *.zip
 .vscode
+updater/tmp/*

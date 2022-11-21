@@ -48,6 +48,9 @@ restart:
 stop:
 	docker-compose stop
 
+down:
+	docker-compose down
+
 logs:
 	docker-compose logs -f --tail 100
 
@@ -113,7 +116,7 @@ run-updater-screen:
 clean:
 	docker-compose down
 
-test: run
+test:
 	pipenv run pytest -sv --reruns 5
 
 delay: run
