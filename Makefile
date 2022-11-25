@@ -2,6 +2,7 @@ DISPLAY=
 
 sys-packages:
 	# sudo apt install -y docker-compose
+	# sudo usermod -aG docker ${USER}
 	sudo apt install python3-pip -y
 	# WSL2 specific trick to prevent pip from hanging
 	sudo pip -v install pipenv
@@ -114,6 +115,7 @@ run-updater-screen:
 
 clean:
 	docker-compose down
+	rm -f Pipfile*
 
 test:
 	pipenv run pytest -sv --reruns 5
