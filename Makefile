@@ -115,7 +115,8 @@ run-updater-screen:
 
 clean:
 	docker-compose down
-	rm -f Pipfile*
+	pipenv --rm
+	rm -f Pipfile*	
 
 test:
 	pipenv run pytest -sv --reruns 5
