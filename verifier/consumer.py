@@ -7,10 +7,13 @@ from producer import proceed_to_deliver
 import base64
 from hashlib import sha256
 
+def seal_payload(payload:bytearray):
+    return base64.b64encode((payload+'verifier_seal').encode()).decode()
 
-def verify_payload(details) -> bool:
+
+def verify_and_seal_payload(details) -> bool:
     payload_digest = sha256()
-    update_payload_b64 = details['blob']
+    update_payload_b64 = details['blob']    
     update_payload = base64.b64decode(update_payload_b64)
     # update_payload = details['blob']
     if details['digest_alg'] != 'sha256':
@@ -18,10 +21,11 @@ def verify_payload(details) -> bool:
         return False
     payload_digest.update(update_payload)
     hexdigest = payload_digest.hexdigest()
+    details['blob_sealed'] = seal_payload(update_payload_b64)
     if hexdigest != details['digest']:
         print(
             f"[warning] digest verification failed, actual {hexdigest}, expected {details['digest']}")
-        return False
+        return False    
     return True
 
 
@@ -49,13 +53,19 @@ def handle_event(id, details_str):
             delivery_required = True
         elif details['operation'] == 'blob_content':
             # got the blob from storage, verify and notify manager
-            verified = verify_payload(details)
-            cleanup_extra_fields(details)
-            details['operation'] = 'handle_verification_result'
+            verified = verify_and_seal_payload(details)
             details['verified'] = verified
-            if not verified:
+            if verified: 
+                # commit the sealed blob                
+                details['deliver_to'] = 'storage'
+                details['operation'] = 'commit_sealed_blob'
+                cleanup_extra_fields(details)
+                delivery_required = True
+            else:
                 print('[error] !!! update payload verification failed !!!\n'\
                       f"{details}")
+        elif details['operation'] == 'blob_committed':
+            details['operation'] = 'handle_verification_result'            
             try:
                 # try to send verification result to the original requester                
                 details['deliver_to'] = details['verification_requester']

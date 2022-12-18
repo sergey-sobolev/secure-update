@@ -1,25 +1,25 @@
 # Отчёт о выполнении задачи "Secure update"
 
 - [Отчёт о выполнении задачи "Secure update"](#отчёт-о-выполнении-задачи-secure-update)
-  - [Постановка задачи*](#постановка-задачи)
-  - [Известные ограничения и вводные*](#известные-ограничения-и-вводные)
-    - [Цели и Предположения Безопасности (ЦПБ)*](#цели-и-предположения-безопасности-цпб)
-      - [Цели*](#цели)
-      - [Предположения*](#предположения)
-  - [Архитектура решения*](#архитектура-решения)
-    - [Компоненты*](#компоненты)
+  - [Постановка задачи\*](#постановка-задачи)
+  - [Известные ограничения и вводные\*](#известные-ограничения-и-вводные)
+    - [Цели и Предположения Безопасности (ЦПБ)\*](#цели-и-предположения-безопасности-цпб)
+      - [Цели\*](#цели)
+      - [Предположения\*](#предположения)
+  - [Архитектура решения\*](#архитектура-решения)
+    - [Компоненты\*](#компоненты)
       - [Монитор безопасности (security monitor)](#монитор-безопасности-security-monitor)
-    - [Алгоритм работы решения*](#алгоритм-работы-решения)
-    - [Описание cценариев (последовательности выполнения операций), при которых ЦБ нарушаются*](#описание-cценариев-последовательности-выполнения-операций-при-которых-цб-нарушаются)
+    - [Алгоритм работы решения\*](#алгоритм-работы-решения)
+    - [Описание cценариев (последовательности выполнения операций), при которых ЦБ нарушаются\*](#описание-cценариев-последовательности-выполнения-операций-при-которых-цб-нарушаются)
       - [Негативный сценарий 1. Менеджер не проверяет обновление](#негативный-сценарий-1-менеджер-не-проверяет-обновление)
       - [Негативный сценарий 2. Менеджер игнорирует результаты проверки](#негативный-сценарий-2-менеджер-игнорирует-результаты-проверки)
       - [Негативный сценарий 3. Storage подменяет файл после проверки](#негативный-сценарий-3-storage-подменяет-файл-после-проверки)
-      - [Сводная таблица негативных сценариев*](#сводная-таблица-негативных-сценариев)
-    - [Указание "доверенных компонент" на архитектурной диаграмме с обоснованием выбора*](#указание-доверенных-компонент-на-архитектурной-диаграмме-с-обоснованием-выбора)
-    - [Политики безопасности*](#политики-безопасности)
-  - [Запуск приложения и тестов*](#запуск-приложения-и-тестов)
-    - [Запуск приложения*](#запуск-приложения)
-    - [Запуск тестов*](#запуск-тестов)
+      - [Сводная таблица негативных сценариев\*](#сводная-таблица-негативных-сценариев)
+    - [Указание "доверенных компонент" на архитектурной диаграмме с обоснованием выбора\*](#указание-доверенных-компонент-на-архитектурной-диаграмме-с-обоснованием-выбора)
+    - [Политики безопасности\*](#политики-безопасности)
+  - [Запуск приложения и тестов\*](#запуск-приложения-и-тестов)
+    - [Запуск приложения\*](#запуск-приложения)
+    - [Запуск тестов\*](#запуск-тестов)
 
 ---
 **Важно!** 
@@ -175,47 +175,73 @@
 
 ```python {lineNo:true}
 
+import base64
+VERIFIER_SEAL = 'verifier_seal'
+
+
 def check_operation(id, details):
     authorized = False
+    # print(f"[debug] checking policies for event {id}, details: {details}")
+    print(f"[info] checking policies for event {id},"
+          f" {details['source']}->{details['deliver_to']}: {details['operation']}")
     src = details['source']
     dst = details['deliver_to']
     operation = details['operation']
-    if  src == 'downloader' and dst == 'manager' \
-        and operation == 'download_done':
-        authorized = True   
+    if src == 'downloader' and dst == 'manager' \
+            and operation == 'download_done':
+        authorized = True
     if src == 'manager' and dst == 'downloader' \
-        and operation == 'download_file':
-        authorized = True   
+            and operation == 'download_file':
+        authorized = True
     if src == 'manager' and dst == 'storage' \
-        and operation == 'commit_blob':
-        authorized = True   
+            and operation == 'commit_blob':
+        authorized = True
     if src == 'manager' and dst == 'verifier' \
-        and operation == 'verification_requested':
-        authorized = True   
+            and operation == 'verification_requested':
+        authorized = True
     if src == 'verifier' and dst == 'manager' \
-        and operation == 'handle_verification_result':
-        authorized = True   
+            and operation == 'handle_verification_result':
+        authorized = True
     if src == 'manager' and dst == 'updater' \
-        and operation == 'proceed_with_update' \
-        and details['verified'] is True:
-        authorized = True   
+            and operation == 'proceed_with_update' \
+            and details['verified'] is True:
+        authorized = True
     if src == 'storage' and dst == 'manager' \
-        and operation == 'blob_committed':
-        authorized = True   
-    if src == 'verifier' and dst == 'storage' \
-        and operation == 'get_blob':
+            and operation == 'blob_committed':
         authorized = True
     if src == 'storage' and dst == 'verifier' \
-        and operation == 'blob_content':
-        authorized = True   
+            and operation == 'blob_committed':
+        authorized = True
+    if src == 'verifier' and dst == 'storage' \
+            and operation == 'get_blob':
+        authorized = True
+    if src == 'verifier' and dst == 'storage' \
+            and operation == 'commit_sealed_blob' \
+            and details['verified'] is True:
+        authorized = True
+    if src == 'storage' and dst == 'verifier' \
+            and operation == 'blob_content':
+        authorized = True
     if src == 'updater' and dst == 'storage' \
-        and operation == 'get_blob':
+            and operation == 'get_blob':
         authorized = True
     if src == 'storage' and dst == 'updater' \
-        and operation == 'blob_content':
-        authorized = True   
-     
+            and operation == 'blob_content' and check_payload_seal(details['blob']) is True:
+        authorized = True
+
     return authorized
+
+
+def check_payload_seal(payload):
+    try:
+        p = base64.b64decode(payload).decode()
+        if p.endswith(VERIFIER_SEAL):
+            print('[info] payload seal is valid')
+            return True
+    except Exception as e:
+        print(f'[error] seal check error: {e}')
+        return False
+
 
 ```
 

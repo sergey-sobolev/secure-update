@@ -24,6 +24,20 @@ def commit_blob(id, details):
     return stored, id
 
 
+def commit_sealed_blob(id, details):
+    stored = False
+    sealed_blob_b64 = details['blob_sealed']
+    update_payload = base64.b64decode(sealed_blob_b64)
+    try:
+        with open(STORAGE_PATH+id, "wb") as f:
+            f.write(update_payload)
+        f.close()
+        stored = True
+    except Exception as e:
+        print(f'[error] failed to store blob {id} in {os.getcwd()}: {e}')
+    return stored, id
+
+
 def get_blob(id, details):
     success = False
     encoded_blob = None
@@ -40,9 +54,10 @@ def get_blob(id, details):
 
 def handle_event(id: str, details: dict):
     # print(f"[debug] handling event {id}, {details}")
-    print(f"[info] handling event {id}, {details['source']}->{details['deliver_to']}: {details['operation']}")
+    print(
+        f"[info] handling event {id}, {details['source']}->{details['deliver_to']}: {details['operation']}")
     try:
-        if details['operation'] == 'commit_blob':                                
+        if details['operation'] == 'commit_blob':
             # it's a request to store the blob
             stored, blob_id = commit_blob(id, details)
             if stored:
@@ -52,6 +67,20 @@ def handle_event(id: str, details: dict):
                 # remove the update file payload before sending further
                 try:
                     del details['update_file']
+                finally:
+                    proceed_to_deliver(id, details)
+            else:
+                print("[error] failed to store blob")
+        elif details['operation'] == 'commit_sealed_blob':
+            # it's a request to store the sealed blob
+            stored, blob_id = commit_sealed_blob(id, details)
+            if stored:
+                details['deliver_to'] = details['source']
+                details['blob_id'] = blob_id
+                details['operation'] = 'blob_committed'
+                # remove the sealed payload before sending further
+                try:
+                    del details['blob_sealed']
                 finally:
                     proceed_to_deliver(id, details)
             else:
