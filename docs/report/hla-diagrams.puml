@@ -1,0 +1,292 @@
+@startuml hla-before
+
+actor User as user
+
+rectangle "External service" {
+    (File server) as server
+    artifact "Application update" as update
+}
+
+rectangle "Internal services" {
+    rectangle "Business logic" {
+        rectangle "Application" {
+            (Application update) as update_app
+            (Application) as app
+            update_app --> app : обновляет файлы
+        }
+    }
+    rectangle "System components\nfor FLASK" {
+        (Message bus) as kafka
+        (Security monitor) as monitor
+    }
+    rectangle "Secure update" {
+        (Manager)
+        (Downloader) as downloader
+        (Verifier)
+        (Storage)
+        artifact "update files" as updates
+    }
+}
+
+app <- user: используя HTTP,\nработает с
+kafka -[#hide]> downloader
+downloader -[#hide]> update_app
+
+update ..> server: хранится в
+user -up-> server: используя REST,\nзапрашивает цифровую подпись\nобновления у
+downloader -up-> server: используя HTTP,\nскачивает из
+updates .up.> Storage: хранится в
+
+user --> Manager: HTTP: запрос обновления
+Manager -up-> downloader: запрос скачивания файла обновления
+Manager --> Storage: запись файла обновления
+Manager --> Verifier: запрос проверки обновления
+Verifier --> Storage: чтение файлов для проверки
+Manager -up-> update_app: запрос обновления файлом
+update_app --> Storage: запрос файла
+
+kafka --> monitor
+Storage -[#hide]--> kafka
+
+
+@enduml
+
+
+@startuml hla-after
+
+(Device) as device
+actor User as user
+
+rectangle "External service" {
+    (File server) as server
+    artifact "component update" as update
+}
+
+rectangle "Internal services" {
+    rectangle "Business logic" {
+        rectangle input {
+            (Component update) as update_di
+            (Data input) as di
+            di <-- update_di : обновляет файлы
+        } 
+        rectangle processing {
+            (Component update) as update_dp
+            (Data processor) as dp
+            dp <-- update_dp
+        } 
+        rectangle output {
+            (Data output) as do
+            (Component update) as update_do
+            do <-- update_do
+        }    
+
+
+        ' update_dp -[#hide]-> do
+        ' update_di -[#hide]> update_dp
+        ' update_dp -[#hide]> update_do
+        di -> dp
+        dp -> do
+    }
+
+    rectangle "Secure update" {
+        (Manager)
+        (Downloader) as downloader
+        (Verifier)
+        (Storage)
+        artifact "update files" as updates
+
+    } 
+
+    rectangle "System components\nfor FLASK" {
+        (Message bus) as kafka
+        (Security monitor) as monitor
+    }
+
+}
+
+
+
+device --> di: используя HTTP,\nпередаёт данные в
+do -> user: используя HTTP,\nполучает обработанные данные
+
+' dp -[#hide]-> Downloader
+
+
+update ..> server: хранится в
+user -> server: используя REST,\nзапрашивает цифровую подпись\nобновления у
+downloader -up--> server: используя HTTP,\nскачивает из
+updates .up.> Storage: хранится в
+
+user ---> Manager: HTTP: запрос обновления
+Manager -up-> downloader: запрос скачивания файла обновления
+Manager --> Storage: запись файла обновления
+Manager --> Verifier: запрос проверки обновления
+Verifier --> Storage: чтение файлов для проверки
+Manager -up-> update_di: запрос обновления файлом
+update_di --> Storage: запрос файла
+
+kafka --> monitor
+' kafka -[#hide]> Storage
+di -[#hide]---> Manager
+Storage -[#hide]--> kafka
+
+@enduml
+
+@startuml hla-tcb
+
+legend right
+    | Цвет | Тип |
+    |<#lightgreen>| Доверенный компонент |
+    |<#lightgray>| Недоверенный компонент |
+endlegend
+
+rectangle {
+    (Update)
+    (Application)
+}
+
+:User: ---> Application: используя HTTP,\nработает с
+Application <- Update: обновляет файлы
+
+(Manager)
+(File server) as server
+(Downloader) as downloader
+(Verifier) #lightgreen
+(Storage)
+(Message bus) as kafka #lightgreen
+(Security monitor) as monitor #lightgreen 
+artifact "application update" as update
+artifact "update files" as updates
+
+update ..> server: хранится в
+:User: ..> server: используя REST,\nзапрашивает цифровую подпись\nобновления у
+downloader -up-> server: используя HTTP,\nскачивает из
+updates ..> Storage: хранится в
+
+Update -down-> kafka
+downloader -down-> kafka
+Storage -down-> kafka
+Manager -down-> kafka
+Verifier -down-> kafka
+monitor -up-> kafka
+
+
+@enduml
+
+@startuml sm
+
+ 
+(Manager) -down-> (Verifier): запрос на верификацию
+(Verifier) <- (Storage): чтение данных из\nхранилища для проверки
+(Verifier) -down-> (SM): позитивный вердикт
+
+@enduml
+
+@startuml dfd
+
+
+rectangle {
+    (Update)
+    (Application)
+}
+
+:User: --> Application: using HTTP accesses
+Application <- Update: updates files of
+
+(Manager)
+(File server) as server
+(Downloader) as downloader
+(Verifier)
+(Storage)
+(Message bus) as kafka
+(Security monitor) as monitor
+artifact "application update" as update
+artifact "update files" as updates
+
+update ..> server: stored by
+:User: ..> server: using REST\nrequests update digest from
+downloader -up-> server: using HTTP\ndownloads from
+updates ..> Storage: stored by
+
+Update -down-> kafka
+downloader -down-> kafka
+Storage -down-> kafka
+Manager -down-> kafka
+Verifier -down-> kafka
+monitor -up-> kafka
+
+
+@enduml
+
+@startuml dfd-tcb
+
+skinparam card {
+    RoundCorner 25    
+}
+
+legend right
+    | Цвет/\n Вид | Тип |
+    |<#lightgreen> | Доверенный компонент |
+    |<#pink>| Недоверенный компонент |
+    |<color:black><size:26><&arrow-right></size></color>| запрос |
+    |<color:black><size:24><U+21E2></size></color>| ответ |
+endlegend
+
+rectangle {
+    (Update) #pink
+    (Application) #pink
+}
+
+rectangle {
+    (Message bus [MB]) as kafka #lightgreen
+    (Security monitor) as monitor #lightgreen
+    monitor <-up-> kafka
+}
+note "вся внутренняя коммуникация\nпроходит через эти системные сущности" as n1
+n1 -[hidden]d-> kafka 
+
+
+:User: --> Application: использует\n(* HTTP)
+Application <-down- Update: обновляет файлы
+
+(Manager) #pink
+(File server) as server #pink 
+(Downloader) as downloader #pink 
+(Verifier) #lightgreen
+(Storage) #pink
+
+card "Запрашивает обновление\n(* HTTP)" as userUpdateRequest
+card "Запрос на скачивание обновления\n(* MB)" as downloadRequest
+card "Запрашивает проверку обновления\n(* MB)" as verificationRequest
+card "Запрашивает запись файла обновления\n(* MB)" as managerWriteRequest
+card "Запрашивает файл обновления\n(* MB)" as verificationReadRequest
+card "Запрашивает файл обновления\n(* MB)" as updateReadRequest
+card "Запрашивает обновление\n(* MB)" as managerUpdateRequest
+card "Скачивает файл\n(* HTTP)" as serverDownloadRequest
+
+
+
+
+User --> userUpdateRequest 
+Manager <-up- userUpdateRequest
+Manager -up-> downloadRequest 
+downloadRequest -up-> downloader
+downloader -up-> serverDownloadRequest
+server <-- serverDownloadRequest
+downloader <.up. server
+Manager <.up. downloader
+Manager -down-> managerWriteRequest
+managerWriteRequest -> Storage
+verificationRequest <-left- Manager
+Verifier <- verificationRequest
+Verifier -up-> verificationReadRequest
+Manager <.down. Verifier
+verificationReadRequest -up-> Storage
+Verifier <.. Storage
+Update -down-> updateReadRequest
+updateReadRequest -down-> Storage
+Update <.down. Storage
+managerUpdateRequest <-- Manager
+Update <-- managerUpdateRequest
+
+@enduml

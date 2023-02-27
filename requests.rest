@@ -1,4 +1,22 @@
-### application
+### post new data
+
+POST http://localhost:5003/update HTTP/1.1
+content-type: application/json
+
+[
+    {
+        "param_name": "current",
+        "param_units": "A",
+        "param_value": 100
+    },
+    {
+        "param_name": "temperature",
+        "param_units": "C",
+        "param_value": 90
+    },
+]
+
+### get processing results
 
 GET http://localhost:5000/ HTTP/1.1
 
@@ -12,7 +30,7 @@ auth: very-secure-token
 {
     "url":"http://file_server:5001/download-update/app-update.zip", 
     "target": "app", 
-    "digest": "223470f94e1bc8c41f5e0005dc3eedfe2851569d72045d4022c9c9c42518b384", 
+    "digest": "73d00cd5220a7b850ee79f7870834efd1495f81ca3e3c1865cbc875a34d833f5", 
     "digest_alg": "sha256"
 }
 

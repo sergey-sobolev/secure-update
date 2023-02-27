@@ -1,4 +1,4 @@
-# Secure update
+# Secure update example transformed to something else
 
 ## Disclaimer 
 
@@ -7,8 +7,10 @@ The code is distributed under MIT license (see the LICENSE file).
 
 ## Purpose
 
-This is an example of update procedure hardening by using "Security monitor" pattern: all cross-servie requests go through the Monitor service.
-The Monitor checks whether particular request is authorized and valid, then delivers it to destination service or drops it without further processing.
+This example demonstrates transformation of the basic "secure update" code to something else - e.g. kind of data gateway with the feature of sub components update.
+
+More detailed description see in file docs/report/report.md (currently in Russian)
+
 
 ## Running the demo
 
