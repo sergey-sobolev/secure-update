@@ -3,3 +3,4 @@ configparser
 flask
 pytest
 pytest-rerunfailures
+python-dotenv

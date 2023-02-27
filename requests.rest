@@ -1,6 +1,6 @@
 ### post new data
 
-POST http://localhost:5003/update HTTP/1.1
+POST http://localhost:5005/ingest HTTP/1.1
 content-type: application/json
 
 [
@@ -13,7 +13,7 @@ content-type: application/json
         "param_name": "temperature",
         "param_units": "C",
         "param_value": 90
-    },
+    }
 ]
 
 ### get processing results

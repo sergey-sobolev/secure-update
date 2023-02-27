@@ -1,43 +1,44 @@
 import multiprocessing
 from flask import Flask, request, jsonify
 from uuid import uuid4
+import os
+from dotenv import load_dotenv
 import threading
 
+load_dotenv()
+
 host_name = "0.0.0.0"
-port = 5002
+port = os.getenv("DATA_INPUT_API_PORT", default=5005)
 
 app = Flask(__name__)             # create an app instance
-
-APP_VERSION = "1.0.2"
 
 _requests_queue: multiprocessing.Queue = None
 
 @app.route("/ingest", methods=['POST'])
-def update():
+def data_ingest():
     content = request.json
-    auth = request.headers['auth']
-    if auth != 'very-secure-token':
-        return "unauthorized", 401
+    # skip authentication step as we decided to trust our hardware
+
+    # auth = request.headers['auth']
+    # if auth != 'very-secure-token':
+    #     return "unauthorized", 401
 
     req_id = uuid4().__str__()
 
     try:
         update_details = {
             "id": req_id,
-            "operation": "download_file",
-            "target": content['target'],
-            "url": content['url'],
-            "deliver_to": "downloader",
-            "digest": content['digest'],
-            "digest_alg": content['digest_alg']
+            "operation": "process_new_data",
+            "new_data": content,            
+            "deliver_to": "data_processor"            
             }
         _requests_queue.put(update_details)
-        print(f"update event: {update_details}")
+        print(f"new data event: {update_details}")
     except:
         error_message = f"malformed request {request.data}"
         print(error_message)
         return error_message, 400
-    return jsonify({"operation": "update requested", "id": req_id})
+    return jsonify({"operation": "new data received", "id": req_id})
 
 def start_rest(requests_queue):
     global _requests_queue 
