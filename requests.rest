@@ -7,19 +7,19 @@ content-type: application/json
     {
         "param_name": "current",
         "param_units": "A",
-        "param_value": 100
+        "param_value": 160
     },
     {
         "param_name": "temperature",
         "param_units": "C",
-        "param_value": 90
+        "param_value": 500
     }
 ]
 
-### get processing results
+### get processing results (events)
 
-GET http://localhost:5000/ HTTP/1.1
-
+GET http://localhost:5006/events HTTP/1.1
+auth: very-secure-token
 
 ### manager
 

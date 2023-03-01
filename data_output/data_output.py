@@ -4,7 +4,6 @@ from argparse import ArgumentParser, FileType
 from configparser import ConfigParser
 from api import start_rest
 from consumer import start_consumer
-from producer import start_producer
 from multiprocessing import Queue
 
 if __name__ == "__main__":
@@ -21,9 +20,8 @@ if __name__ == "__main__":
     config = dict(config_parser['default'])
     config.update(config_parser['manager'])
 
-    requests_queue = Queue()
+    events_queue = Queue()
 
-    start_rest(requests_queue)
-    start_consumer(args, config)
-    start_producer(args, config, requests_queue)
+    start_rest(events_queue)
+    start_consumer(args, config, events_queue)
 

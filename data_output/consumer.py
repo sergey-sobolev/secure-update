@@ -4,39 +4,25 @@
 import threading
 from confluent_kafka import Consumer, OFFSET_BEGINNING
 import json
-from producer import proceed_to_deliver
+from multiprocessing import Queue
+
+_events_queue: Queue = None
 
 def handle_event(id: str, details: dict):
     delivery_required = False
     # print(f"[debug] handling event {id}, {details}")
     print(f"[info] handling event {id}, {details['source']}->{details['deliver_to']}: {details['operation']}")
-    if details['operation'] == 'download_done':
-        # update downloaded, now shall store
-        details['operation'] = 'commit_blob'
-        details['deliver_to'] = 'storage'
-        delivery_required = True                
+    if details['operation'] == 'process_new_events':
+        _events_queue.put(details)
 
-    if details['operation'] == 'blob_committed':
-        # blob stored, now request the blob verification
-        details['operation'] = 'verification_requested'
-        details['deliver_to'] = 'verifier'
-        delivery_required = True
+def consumer_job(args, config, events_queue=None):
 
-    if details['operation'] == 'handle_verification_result':
-        if details['verified'] is True:
-            details['operation'] = 'proceed_with_update'
-            details['deliver_to'] = 'updater'
-            delivery_required = True
-        else:
-            print(f"[error] verification failed, update aborted. Update id: {id}")
-
-    if delivery_required:
-        proceed_to_deliver(id, details)
-
-def consumer_job(args, config):
+    global _events_queue
+    _events_queue = events_queue
 
     # Create Consumer instance
     manager_consumer = Consumer(config)
+    
 
     # Set up a callback to handle the '--reset' flag.
     def reset_offset(manager_consumer, partitions):
@@ -46,7 +32,7 @@ def consumer_job(args, config):
             manager_consumer.assign(partitions)
 
     # Subscribe to topic
-    topic = "manager"
+    topic = "data_output"
     manager_consumer.subscribe([topic], on_assign=reset_offset)
 
     # Poll for new messages from Kafka and print them.
@@ -75,8 +61,8 @@ def consumer_job(args, config):
         # Leave group and commit final offsets
         manager_consumer.close()
 
-def start_consumer(args, config):
-    threading.Thread(target=lambda: consumer_job(args, config)).start()
+def start_consumer(args, config, events_queue):
+    threading.Thread(target=lambda: consumer_job(args, config, events_queue)).start()
     
 if __name__ == '__main__':
     start_consumer(None)
