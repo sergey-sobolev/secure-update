@@ -3,7 +3,6 @@
 from argparse import ArgumentParser, FileType
 from configparser import ConfigParser
 from api import start_rest
-from consumer import start_consumer
 from producer import start_producer
 from multiprocessing import Queue
 
@@ -23,7 +22,6 @@ if __name__ == "__main__":
 
     requests_queue = Queue()
 
-    start_rest(requests_queue)
-    start_consumer(args, config)
+    start_rest(requests_queue)    
     start_producer(args, config, requests_queue)
 

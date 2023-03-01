@@ -1,30 +1,52 @@
 # implements Kafka topic consumer functionality
 
-from email.mime import base
 import threading
 from confluent_kafka import Consumer, OFFSET_BEGINNING
 import json
 from producer import proceed_to_deliver
-from urllib.request import urlopen
-import base64
+
+CURRENT_THRESHOLD = 50
+TEMPERATURE_THRESHOLD = 95
+
+def check_new_data(data: list, details):
+    details["alerts"] = []
+    for sample in data:
+        if "param_name" in sample: 
+            if sample["param_name"] == "current":
+                current = sample["param_value"]
+                if current > CURRENT_THRESHOLD:
+                    details["alerts"].append(
+                        {
+                            "source_id": details["id"],
+                            "event": "overload",
+                            "current_value": current,
+                            "current_threshold": CURRENT_THRESHOLD
+                        }
+                    )
+            elif sample["param_name"] == "temperature":
+                temperature = sample["param_value"]
+                if temperature > TEMPERATURE_THRESHOLD:
+                    details["alerts"].append(
+                        {
+                            "source_id": details["id"],
+                            "event": "overheating",
+                            "temperature_value": temperature,
+                            "temperature_threshold": TEMPERATURE_THRESHOLD
+                        }
+                    )
 
 def handle_event(id: str, details: dict):    
     # print(f"[debug] handling event {id}, {details}")
     print(f"[info] handling event {id}, {details['source']}->{details['deliver_to']}: {details['operation']}")
     try:
-        if details['operation'] == 'download_file':
-            request_url = details['url']
-            response = urlopen(request_url)
-            data = response.read()
-            data_b64 = base64.b64encode(data).decode('ascii')
-            details['update_file'] = data_b64
-            details['verified'] = None
-            details['update_file_encoding'] = 'base64'            
-            details['deliver_to'] = details['source']
-            details['operation'] = 'download_done'
-            # remove update url details as it will not be further used
-            del details['url']
-            proceed_to_deliver(id, details)
+        if details['operation'] == 'process_new_data':
+            new_data = details['new_data']            
+            check_new_data(new_data, details)
+            if len(details["alerts"]) > 0:
+                # new alerts need to be delivered
+                details['deliver_to'] = 'data_output'
+                details['operation'] = 'process_new_events'
+                proceed_to_deliver(id, details)
     except Exception as e:
         print(f"[error] failed to handle request: {e}")
 
@@ -40,7 +62,7 @@ def consumer_job(args, config):
             downloader_consumer.assign(partitions)
 
     # Subscribe to topic
-    topic = "downloader"
+    topic = "data_processor"
     downloader_consumer.subscribe([topic], on_assign=reset_offset)
 
     # Poll for new messages from Kafka and print them.

@@ -9,8 +9,7 @@ _requests_queue: multiprocessing.Queue = None
 
 def proceed_to_deliver(id, details):
     # print(f"[debug] queueing for delivery event id: {id}, payload: {details}")
-    details['source'] = 'downloader'
-    details['authorized'] = True
+    details['source'] = 'data_processor'
     _requests_queue.put(details)
 
 

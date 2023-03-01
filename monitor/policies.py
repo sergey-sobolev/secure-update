@@ -10,6 +10,15 @@ def check_operation(id, details):
     src = details['source']
     dst = details['deliver_to']
     operation = details['operation']
+
+    if src == 'data_input' and dst == 'data_processor' \
+        and operation == 'process_new_data':
+        authorized = True
+
+    if src == 'data_processor' and dst == 'data_output' \
+        and operation == 'process_new_events':
+        authorized = True
+
     if src == 'downloader' and dst == 'manager' \
             and operation == 'download_done':
         authorized = True
