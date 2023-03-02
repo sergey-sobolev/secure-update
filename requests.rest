@@ -1,6 +1,6 @@
 ### post new data
 
-POST http://localhost:5005/ingest HTTP/1.1
+POST http://localhost:6000/ingest HTTP/1.1
 content-type: application/json
 
 [
@@ -16,9 +16,9 @@ content-type: application/json
     }
 ]
 
-### get processing results (events)
+### get processing results (alerts only)
 
-GET http://localhost:5006/events HTTP/1.1
+GET http://localhost:6001/alerts HTTP/1.1
 auth: very-secure-token
 
 ### manager

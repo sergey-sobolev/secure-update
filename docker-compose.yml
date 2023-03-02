@@ -28,15 +28,15 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
 
-  app_with_updater:
-    image: app_with_updater
-    build:
-      context: .
-      dockerfile: ./Dockerfile.app_with_updater
-    depends_on:
-      - su-broker
-    ports:
-      - "5000:5000"
+  # app_with_updater:
+  #   image: app_with_updater
+  #   build:
+  #     context: .
+  #     dockerfile: ./Dockerfile.app_with_updater
+  #   depends_on:
+  #     - su-broker
+  #   ports:
+  #     - "5000:5000"
 
   file_server:
     image: file_server
@@ -89,10 +89,43 @@ services:
       dockerfile: ./Dockerfile.manager
     depends_on:
       - su-broker      
-      - monitor
-      - downloader
-      - verifier
-      - storage
-      - app_with_updater
+      # - monitor
+      # - downloader
+      # - verifier
+      # - storage
+      # - app_with_updater
     ports:
       - "5002:5002"
+
+  data_input:
+    image: data_input
+    build:
+      context: .
+      dockerfile: ./Dockerfile.data_input
+    depends_on:
+      - su-broker
+    environment:
+      - DATA_INPUT_API_PORT=6000
+    ports:
+      - "6000:6000"
+
+  data_processor:
+    image: data_processor
+    build:
+      context: .
+      dockerfile: ./Dockerfile.data_processor
+    depends_on:
+      - su-broker    
+
+  data_output:
+    image: data_output
+    build:
+      context: .
+      dockerfile: ./Dockerfile.data_output
+    depends_on:
+      - su-broker
+    environment:
+      - DATA_OUTPUT_API_PORT=6001
+    ports:
+      - "6001:6001"
+

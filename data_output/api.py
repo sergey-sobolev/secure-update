@@ -14,8 +14,8 @@ app = Flask(__name__)             # create an instance
 
 _events_queue: multiprocessing.Queue = None
 
-@app.route("/events", methods=['GET'])
-def get_events():    
+@app.route("/alerts", methods=['GET'])
+def get_alerts():    
     if 'auth' not in request.headers:
         return "unauthorized", 401
     auth = request.headers['auth']    
@@ -26,8 +26,9 @@ def get_events():
     while True:
         try:        
             event = _events_queue.get_nowait()    
-            # extract alerts only, if any
-            events.append(event["alerts"])
+            # extract alerts only, if any, also flatten the list
+            for item in event["alerts"]:
+                events.append(item)
         except:
             # no events
             break              
