@@ -25,10 +25,9 @@ def headers():
     return {'content-type': 'application/json', 'auth': AUTH_TOKEN}
 
 
-def send_raw_data(data: list) -> dict:
-    headers = {'content-type': 'application/json'}
+def send_raw_data(data: list) -> dict:    
     req = Request(DATA_INPUT_URL, data=json.dumps(
-        data).encode(), headers=headers)
+        data).encode(), headers=headers())
     response = urlopen(req)
     assert response.getcode() == 200
     result = json.loads(response.read().decode())

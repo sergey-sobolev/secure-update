@@ -1,18 +1,18 @@
 ### post new data
 
-POST http://localhost:5005/ingest HTTP/1.1
+POST http://localhost:6000/ingest HTTP/1.1
 content-type: application/json
 
 [
     {
         "param_name": "current",
         "param_units": "A",
-        "param_value": 160
+        "param_value": 60
     },
     {
         "param_name": "temperature",
         "param_units": "C",
-        "param_value": 1500
+        "param_value": 90
     }
 ]
 

@@ -8,7 +8,7 @@ class FakeDPHandler(FakeHandler):
         super().__init__()
         self._topic_name = "data_processor"
         self._fake_behavior = {
-            "remove_payload": self._modifier_remove_payload,
+            # "remove_payload": self._modifier_remove_payload,
             "modify_payload": self._modifier_modify_payload
         }
         self._active_modifiers = []

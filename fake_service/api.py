@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 import threading
 from fake_handlers_list import FakeDPHandler
-from fake_handler_base import FakeHandler
 
 
 host_name = "0.0.0.0"
@@ -48,15 +47,6 @@ def change_faking_mod():
         print(error_message)
         return error_message, 400
 
-    # queue = get_requested_events_queue()
-    # events_cache = {}
-    # try:
-    #     events = queue.get()  # will block until data is received
-    #     for event in events:
-    #         events_cache[event["id"]] = event
-    # except Exception as e:
-    #     return e, 500
-    # return jsonify(events_cache)
     return jsonify({"fake_mode_change": "accepted"}), 200
 
 
