@@ -6,10 +6,9 @@ from confluent_kafka import Consumer, OFFSET_BEGINNING
 import json
 from multiprocessing import Queue
 
-_events_queue: Queue = None
+_events_queue: Queue or None = None
 
-def handle_event(id: str, details: dict):
-    delivery_required = False
+def handle_event(id: str, details: dict):    
     # print(f"[debug] handling event {id}, {details}")
     print(f"[info] handling event {id}, {details['source']}->{details['deliver_to']}: {details['operation']}")
     if details['operation'] == 'process_new_events':
@@ -49,9 +48,9 @@ def consumer_job(args, config, events_queue=None):
                 print(f"[error] {msg.error()}")
             else:
                 try:
-                    id = msg.key().decode('utf-8')
+                    event_id = msg.key().decode('utf-8')
                     details = json.loads(msg.value().decode('utf-8'))
-                    handle_event(id, details)
+                    handle_event(event_id, details)
                 except Exception as e:
                     print(
                         f"[error] malformed event received from topic {topic}: {msg.value()}. {e}")    
@@ -64,5 +63,3 @@ def consumer_job(args, config, events_queue=None):
 def start_consumer(args, config, events_queue):
     threading.Thread(target=lambda: consumer_job(args, config, events_queue)).start()
     
-if __name__ == '__main__':
-    start_consumer(None)

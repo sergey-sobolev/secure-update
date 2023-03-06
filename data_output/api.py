@@ -29,7 +29,7 @@ def get_alerts():
             # extract alerts only, if any, also flatten the list
             for item in event["alerts"]:
                 events.append(item)
-        except:
+        except Exception as _:
             # no events
             break              
     return jsonify(events)
@@ -38,6 +38,3 @@ def start_rest(events_queue):
     global _events_queue 
     _events_queue = events_queue
     threading.Thread(target=lambda: app.run(host=host_name, port=port, debug=True, use_reloader=False)).start()
-
-if __name__ == "__main__":        # on running python app.py
-    start_rest()
