@@ -21,24 +21,24 @@ def consumer_job(args, config, events_queue=None):
     _events_queue = events_queue
 
     # Create Consumer instance
-    manager_consumer = Consumer(config)
+    data_output_consumer = Consumer(config)
     
 
     # Set up a callback to handle the '--reset' flag.
-    def reset_offset(manager_consumer, partitions):
+    def reset_offset(consumer, partitions):
         if args.reset:
             for p in partitions:
                 p.offset = OFFSET_BEGINNING
-            manager_consumer.assign(partitions)
+            consumer.assign(partitions)
 
     # Subscribe to topic
     topic = "data_output"
-    manager_consumer.subscribe([topic], on_assign=reset_offset)
+    data_output_consumer.subscribe([topic], on_assign=reset_offset)
 
     # Poll for new messages from Kafka and print them.
     try:
         while True:
-            msg = manager_consumer.poll(1.0)
+            msg = data_output_consumer.poll(1.0)
             if msg is None:
                 # Initial message consumption may take up to
                 # `session.timeout.ms` for the consumer group to
@@ -59,7 +59,7 @@ def consumer_job(args, config, events_queue=None):
         pass
     finally:
         # Leave group and commit final offsets
-        manager_consumer.close()
+        data_output_consumer.close()
 
 def start_consumer(args, config, events_queue):
     threading.Thread(target=lambda: consumer_job(args, config, events_queue)).start()

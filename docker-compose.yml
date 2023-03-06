@@ -129,3 +129,17 @@ services:
     ports:
       - "6001:6001"
 
+  fake_service:
+      image: fake_service
+      container_name: fake_service
+      restart: always
+      build:
+        context: .
+        dockerfile: ./Dockerfile.fake_service
+      depends_on:
+        - monitor
+        - su-broker
+      ports:
+        - "6100:6100"
+      environment:
+        DATA_INPUT_API_URL: "http://cm-hmi_m_be:6001"

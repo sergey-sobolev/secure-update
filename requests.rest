@@ -1,6 +1,6 @@
 ### post new data
 
-POST http://localhost:6000/ingest HTTP/1.1
+POST http://localhost:5005/ingest HTTP/1.1
 content-type: application/json
 
 [
@@ -12,7 +12,7 @@ content-type: application/json
     {
         "param_name": "temperature",
         "param_units": "C",
-        "param_value": 500
+        "param_value": 1500
     }
 ]
 
@@ -20,6 +20,9 @@ content-type: application/json
 
 GET http://localhost:6001/alerts HTTP/1.1
 auth: very-secure-token
+
+
+
 
 ### manager
 
@@ -41,3 +44,17 @@ GET http://localhost:5001/get-digest/app-update.zip HTTP/1.1
 ### get archived update file
 GET http://localhost:5001/download-update/app-update.zip HTTP/1.1
 
+
+### faker test: modify payload
+
+POST http://localhost:6100/mode HTTP/1.1
+content-type: application/json
+
+{
+    "fake_services": ["data_processor"],
+    "active_modifiers": ["modify_payload"]
+}
+
+
+### faker: get supported modes
+GET http://localhost:6100/modes HTTP/1.1
