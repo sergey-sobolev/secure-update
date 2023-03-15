@@ -51,8 +51,78 @@ Storage -[#hide]--> kafka
 
 @enduml
 
+@startuml hla-after-part
 
-@startuml hla-after
+(Device) as device
+actor User as user
+
+rectangle "External service" {
+    (File server) as server
+    artifact "component update" as update
+}
+
+rectangle "Internal services" {
+    rectangle "Business logic" {
+        rectangle input {
+            (Data input) as di
+        } 
+        rectangle processing {
+            (Data processor) as dp
+        } 
+        rectangle output {
+            (Data output) as do
+        }    
+
+
+        di -> dp
+        dp -> do
+    }
+
+    rectangle "Secure update" {
+        (Manager)
+        (Downloader) as downloader
+        (Verifier)
+        (Storage)
+        artifact "update files" as updates
+
+    } 
+
+    rectangle "System components\nfor FLASK" {
+        (Message bus) as kafka
+        (Security monitor) as monitor
+    }
+
+}
+
+
+
+device --> di: используя HTTP,\nпередаёт данные в
+do -> user: используя HTTP,\nполучает обработанные данные
+
+' dp -[#hide]-> Downloader
+
+
+update ..> server: хранится в
+user -> server: используя REST,\nзапрашивает цифровую подпись\nобновления у
+downloader -up--> server: используя HTTP,\nскачивает из
+updates .up.> Storage: хранится в
+
+user ---> Manager: HTTP: запрос обновления
+Manager -up-> downloader: запрос скачивания файла обновления
+Manager --> Storage: запись файла обновления
+Manager --> Verifier: запрос проверки обновления
+Verifier --> Storage: чтение файлов для проверки
+
+kafka --> monitor
+' kafka -[#hide]> Storage
+di -[#hide]---> Manager
+Storage -[#hide]--> kafka
+
+@enduml
+
+
+
+@startuml hla-after-with-update
 
 (Device) as device
 actor User as user

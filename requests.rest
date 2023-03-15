@@ -7,12 +7,12 @@ content-type: application/json
     {
         "param_name": "current",
         "param_units": "A",
-        "param_value": 60
+        "param_value": 80
     },
     {
         "param_name": "temperature",
         "param_units": "C",
-        "param_value": 90
+        "param_value": 190
     }
 ]
 

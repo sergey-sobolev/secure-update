@@ -7,3 +7,4 @@ Pipfile
 *.zip
 .vscode
 updater/tmp/*
+out/*
