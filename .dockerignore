@@ -27,3 +27,6 @@ README.md
 **/.log
 **/file_server/data/*
 **/*.pyc
+requirements-dev.txt
+Pipfile*
+pytest.ini

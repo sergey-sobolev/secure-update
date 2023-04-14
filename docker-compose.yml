@@ -28,16 +28,6 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
 
-  # app_with_updater:
-  #   image: app_with_updater
-  #   build:
-  #     context: .
-  #     dockerfile: ./Dockerfile.app_with_updater
-  #   depends_on:
-  #     - su-broker
-  #   ports:
-  #     - "5000:5000"
-
   file_server:
     image: file_server
     build:
@@ -64,6 +54,15 @@ services:
     depends_on:
       - file_server
       - su-broker
+
+  security_events_logger:
+    image: security_events_logger
+    build:
+      context: .
+      dockerfile: ./Dockerfile.security_events_logger
+    depends_on:
+      - su-broker
+
 
   storage:
     image: storage
