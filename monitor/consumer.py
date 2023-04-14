@@ -14,10 +14,19 @@ def handle_event(id, details):
     if check_operation(id, details):
         proceed_to_deliver(id, details)
     else:
-        print("[error] !!!! policies check failed, delivery unauthorized !!! " \
+        msg = "[error] !!!! policies check failed, delivery unauthorized !!! " \
             f"id: {id}, {details['source']}->{details['deliver_to']}:{details['operation']}"
-            )
+        print(msg)
         print(f"[error] suspicious event details: {details}")
+        security_event = {
+            "id": id,
+            "source": "monitor",
+            "operation": "record_event",
+            "message": msg,
+            "details": details,
+            "deliver_to": "security_events_logger"
+        }
+        proceed_to_deliver(id, security_event)
 
 
 def consumer_job(args, config):

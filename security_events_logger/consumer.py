@@ -1,10 +1,8 @@
 # implements Kafka topic consumer functionality
 
-import os
 import threading
 from confluent_kafka import Consumer, OFFSET_BEGINNING
 import json
-import base64
 
 LOGS_PATH = "security_events_logger/data/"
 
@@ -15,30 +13,31 @@ def handle_event(id: str, details: dict):
     print(
         f"[info] handling event {id}, {details['source']}->{details['deliver_to']}: {details['operation']}")
     try:
-        pass
+        with open("security_events_logger/logs/security_events.log", "a+") as f:
+            f.write(json.dumps(details)+"\n")
     except Exception as e:
         print(f"[error] failed to handle request: {e}")
 
 
 def consumer_job(args, config):
     # Create Consumer instance
-    verifier_consumer = Consumer(config)
+    consumer = Consumer(config)
 
     # Set up a callback to handle the '--reset' flag.
-    def reset_offset(verifier_consumer, partitions):
+    def reset_offset(consumer, partitions):
         if args.reset:
             for p in partitions:
                 p.offset = OFFSET_BEGINNING
-            verifier_consumer.assign(partitions)
+            consumer.assign(partitions)
 
     # Subscribe to topic
     topic = "security_events_logger"
-    verifier_consumer.subscribe([topic], on_assign=reset_offset)
+    consumer.subscribe([topic], on_assign=reset_offset)
 
     # Poll for new messages from Kafka and print them.
     try:
         while True:
-            msg = verifier_consumer.poll(1.0)
+            msg = consumer.poll(1.0)
             if msg is None:
                 # Initial message consumption may take up to
                 # `session.timeout.ms` for the consumer group to
@@ -62,7 +61,7 @@ def consumer_job(args, config):
         pass
     finally:
         # Leave group and commit final offsets
-        verifier_consumer.close()
+        consumer.close()
 
 
 def start_consumer(args, config) -> threading.Thread:

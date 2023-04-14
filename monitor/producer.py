@@ -27,12 +27,12 @@ def producer_job(_, config, requests_queue: multiprocessing.Queue):
         #     print("[debug]Produced event to topic {topic}: key = {key:12} value = {value:12}".format(
         #         topic=msg.topic(), key=msg.key().decode('utf-8'), value=msg.value().decode('utf-8')))
 
-    # Produce data by selecting random values from these lists.    
+    # Produce data by selecting random values from these lists.
 
     while True:
-        event_details = requests_queue.get()        
+        event_details = requests_queue.get()
         topic = event_details['deliver_to']
-        producer.produce(topic, json.dumps(event_details), event_details['id'],  
+        producer.produce(topic, json.dumps(event_details), event_details['id'],
             callback=delivery_callback
         )
         # Block until the messages are sent.
@@ -43,6 +43,6 @@ def start_producer(args, config, requests_queue):
     global _requests_queue
     _requests_queue = requests_queue
     threading.Thread(target=lambda: producer_job(args, config, requests_queue)).start()
-    
+
 if __name__ == '__main__':
-    start_producer(None, None, None)    
+    start_producer(None, None, None)
