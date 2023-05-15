@@ -12,6 +12,18 @@ UPDATE_CWD = "updater/"
 STORAGE_PATH = "tmp/"
 UPDATE_SCRIPT_NAME = "./update-and-restart-app.sh"
 APP_PATH = "../app/"
+VERIFIER_SEAL = 'verifier_seal'
+
+
+
+def check_seal(payload:str):        
+    if payload.endswith(VERIFIER_SEAL):
+        return True
+    return False
+
+def strip_verifier_seal(sealed_payload:str):
+    payload = sealed_payload[:-len(VERIFIER_SEAL)]
+    return payload
 
 
 def execute_update(id, details):
@@ -21,7 +33,13 @@ def execute_update(id, details):
     if details['update_file_encoding'] != 'base64':
         print('[error] unsupported blob encoding')
         return
-    update_payload = base64.b64decode(update_payload_b64)
+    update_sealed_payload = base64.b64decode(update_payload_b64).decode()
+    if check_seal(update_sealed_payload) is not True:
+        print('[error] verifier seal is missing or invalid')
+        return
+    else:
+        payload = strip_verifier_seal(update_sealed_payload).encode()
+        update_payload = base64.b64decode(payload)
     try:
         with open(UPDATE_CWD+STORAGE_PATH+id, "wb") as f:
             f.write(update_payload)

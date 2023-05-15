@@ -19,7 +19,9 @@ Verifier -> Storage--: чтение данных
 activate Storage
 Storage --> Verifier--
 activate Verifier
-Verifier -> Verifier: проверка
+Verifier -[#green]> Verifier: проверка &\nопечатывание
+Verifier -[#green]> Storage++: запись данных с печатью
+Storage -[#green]-> Verifier--: данные записаны
 Verifier --> Manager--
 Manager -> Manager: анализ результатов проверки
 alt успешная проверка
