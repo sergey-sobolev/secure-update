@@ -2,12 +2,12 @@
 
 
 rectangle {
-    (Update)
+    (Updater)
     (Application)
 }
 
 :User: ---> Application: используя HTTP,\nработает с
-Application <- Update: обновляет файлы
+Application <- Updater: обновляет файлы
 
 (Manager)
 (File server) as server
