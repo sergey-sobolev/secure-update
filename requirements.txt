@@ -1,5 +1,4 @@
-confluent-kafka
+confluent-kafka==2.0.2
 configparser
 flask
-pytest
-pytest-rerunfailures
+python-dotenv

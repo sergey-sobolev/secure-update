@@ -1,4 +1,4 @@
-@startuml
+@startuml "sd"
 
 actor "Пользователь" as u
 participant Downloader
@@ -19,9 +19,9 @@ Verifier -> Storage--: чтение данных
 activate Storage
 Storage --> Verifier--
 activate Verifier
-Verifier -[#green]> Verifier: проверка &\nопечатывание
-Verifier -[#green]> Storage++: запись данных с печатью
-Storage -[#green]-> Verifier--: данные записаны
+Verifier -> Verifier: проверка &\nопечатывание
+Verifier -> Storage++: запись данных с печатью
+Storage --> Verifier--: данные записаны
 Verifier --> Manager--
 Manager -> Manager: анализ результатов проверки
 alt успешная проверка
@@ -37,5 +37,175 @@ else ошибка проверки
 Manager -> Manager: регистрация ошибки
 end
 
+
+@enduml
+
+@startuml "sm"
+
+ 
+(Manager) -down-> (Verifier): запрос на верификацию
+(Verifier) <- (Storage): чтение данных из\nхранилища для проверки
+(Verifier) -down-> (SM): позитивный вердикт
+
+@enduml
+
+
+@startuml "sd-negative"
+
+actor "Пользователь" as u
+participant Downloader
+participant Manager
+participant Manager
+participant Storage
+participant Verifier
+participant Updater
+
+
+u -> Manager: старт процесса
+Manager -> Downloader++: чтение данных
+Downloader --> Manager--
+Manager -> Storage++: запись данных
+Storage --> Manager--
+note over Manager #red
+"забыл" послать
+запрос на проверку
+end note
+Manager -> Verifier++: команда на проверку данных
+Verifier -> Storage--: чтение данных
+activate Storage
+Storage --> Verifier--
+activate Verifier
+Verifier -> Verifier: проверка
+Verifier --> Manager--
+Manager -> Manager: анализ результатов проверки
+note over Manager #red
+проигнорировал
+результаты проверки,
+всегда успешная
+end note
+alt успешная проверка
+activate Manager
+note over Storage #red
+данные обновления
+изменили после проверки
+end note
+
+Manager -> Updater--: команда на обновление прошивки
+activate Updater
+Updater -> Storage: чтение данных
+deactivate Updater
+activate Storage
+Storage --> Updater
+deactivate Storage
+activate Updater
+Updater -[#red]> Updater: обновление
+else ошибка проверки
+Manager -> Manager: регистрация ошибки
+end
+
+@enduml
+
+
+@startuml "Hacked-manager1"
+title Негативный сценарий: Manager не проверяет прошивки
+
+actor "Пользователь" as u
+participant Downloader
+participant Manager #red
+participant Storage
+participant Verifier
+participant Updater
+
+
+
+u -> Manager: старт процесса
+Manager -> Downloader++: чтение данных
+Downloader --> Manager--
+Manager -> Storage++: запись данных
+Storage --> Manager--
+Manager -[#red]> Updater--: команда на обновление прошивки\nфайл, возможно, повреждён
+activate Updater
+Updater -> Storage: чтение данных
+deactivate Updater
+activate Storage
+Storage --> Updater
+deactivate Storage
+activate Updater
+Updater -[#red]> Updater: обновление
+
+
+@enduml
+
+@startuml "Hacked-manager2"
+title Негативный сценарий: Manager игнорирует результат проверки прошивки
+
+actor "Пользователь" as u
+participant Downloader
+participant Manager #red
+participant Storage
+participant Verifier
+participant Updater
+
+
+
+u -> Manager: старт процесса
+Manager -> Downloader++: чтение данных
+Downloader --> Manager--
+Manager -> Storage++: запись данных
+Storage --> Manager--
+Manager -> Verifier++: команда на проверку данных
+Verifier -> Storage--: чтение данных
+activate Storage
+Storage --> Verifier--
+activate Verifier
+Verifier -> Verifier: проверка
+Verifier --> Manager--
+Manager -[#red]-> Manager: пропущен анализ результатов проверки
+Manager -[#red]> Updater++: команда на обновление прошивки
+Updater -> Storage: чтение данных
+deactivate Updater
+activate Storage
+Storage --> Updater
+deactivate Storage
+activate Updater
+Updater -[#red]> Updater: обновление
+
+
+@enduml
+
+@startuml "Hacked-manager3"
+title Негативный сценарий: Storage подменяет файл после проверки
+
+actor "Пользователь" as u
+participant Downloader
+participant Manager 
+participant Storage #red
+participant Verifier
+participant Updater
+
+
+
+u -> Manager: старт процесса
+Manager -> Downloader++: чтение данных
+Downloader --> Manager--
+Manager -> Storage++: запись данных
+Storage --> Manager--
+Manager -> Verifier++: команда на проверку данных
+Verifier -> Storage--: чтение данных
+activate Storage
+Storage --> Verifier--
+activate Verifier
+Verifier -> Verifier: проверка
+Verifier --> Manager--
+Manager -> Manager: анализ результатов проверки
+Storage -[#red]> Storage: изменение файла
+Manager -> Updater++: команда на обновление прошивки
+Updater -> Storage: чтение данных
+deactivate Updater
+activate Storage
+Storage --[#red]> Updater
+deactivate Storage
+activate Updater
+Updater -[#red]> Updater: обновление
 
 @enduml
