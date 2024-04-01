@@ -3,42 +3,36 @@
 import threading
 from confluent_kafka import Consumer, OFFSET_BEGINNING
 import json
+from time import sleep
 from producer import proceed_to_deliver
 
-CURRENT_THRESHOLD = 50
+HEARTBEAT_THRESHOLD = 120
 TEMPERATURE_THRESHOLD = 95
+
+
+def lower_heartbeat():
+    print("lowering hearbeat..")
+    sleep(1)
+    print("lowering hearbeat.. done")
+
 
 def check_new_data(data: list, details):
     details["alerts"] = []
     for sample in data:
         if "param_name" in sample: 
-            if sample["param_name"] == "current":
-                current = sample["param_value"]
-                if current > CURRENT_THRESHOLD:
+            if sample["param_name"] == "heartbeat":
+                heartbeat = sample["param_value"]
+                if heartbeat > HEARTBEAT_THRESHOLD:
                     details["alerts"].append(
                         {
                             "source_id": details["id"],
-                            "event": "overload",
-                            "current_value": current,
-                            "current_threshold": CURRENT_THRESHOLD
+                            "event": "tachycardia",
+                            "heartbeat_value": heartbeat,
+                            "heartbeat_threshold": HEARTBEAT_THRESHOLD
                         }
                     )
-            elif sample["param_name"] == "temperature":
-                temperature = sample["param_value"]
-                if temperature > TEMPERATURE_THRESHOLD:
-                    details["alerts"].append(
-                        {
-                            "source_id": details["id"],
-                            "event": "overheating",
-                            "temperature_value": temperature,
-                            "temperature_threshold": TEMPERATURE_THRESHOLD
-                        }
-                    )
-            elif sample["param_name"] == "heartbeat":
-                # forward all heartbeat events to the electrode switch
-                details['deliver_to'] = 'electrode_switch'
-                details['operation'] = 'process_new_data'
-                proceed_to_deliver(id, details)
+                    lower_heartbeat()
+                    
 
 def handle_event(id: str, details: dict):    
     # print(f"[debug] handling event {id}, {details}")
@@ -67,7 +61,7 @@ def consumer_job(args, config):
             downloader_consumer.assign(partitions)
 
     # Subscribe to topic
-    topic = "data_processor"
+    topic = "electrode_switch"
     downloader_consumer.subscribe([topic], on_assign=reset_offset)
 
     # Poll for new messages from Kafka and print them.

@@ -116,6 +116,15 @@ services:
     depends_on:
       - su-broker    
 
+  electrode_switch:
+    image: electrode_switch
+    build:
+      context: .
+      dockerfile: ./Dockerfile.electrode_switch
+    depends_on:
+      - su-broker    
+
+
   data_output:
     image: data_output
     build:

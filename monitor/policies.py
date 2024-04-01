@@ -19,6 +19,14 @@ def check_operation(id, details):
         and operation == 'process_new_events':
         authorized = True
 
+    if src == 'data_processor' and dst == 'electrode_switch' \
+        and operation == 'process_new_data':
+        authorized = True
+
+    if src == 'electrode_switch' and dst == 'data_output' \
+        and operation == 'process_new_events':
+        authorized = True
+
     if src == 'downloader' and dst == 'manager' \
             and operation == 'download_done':
         authorized = True

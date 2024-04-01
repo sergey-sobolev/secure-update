@@ -58,3 +58,18 @@ content-type: application/json
 
 ### faker: get supported modes
 GET http://localhost:6100/modes HTTP/1.1
+
+
+
+### post new hearbeat
+
+POST http://localhost:6000/ingest HTTP/1.1
+content-type: application/json
+
+[
+    {
+        "param_name": "heartbeat",
+        "param_units": "BPM",
+        "param_value": 80
+    }
+]
