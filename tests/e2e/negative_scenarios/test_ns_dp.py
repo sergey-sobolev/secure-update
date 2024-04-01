@@ -30,9 +30,13 @@ def setup_module(module):
     
 
 def teardown_module():
+    print(f"stopping fake service {FAKE_SERVICE_INSTANCE}..")
     if FAKE_SERVICE_INSTANCE is not None:
         subprocess.run(["docker", "stop", FAKE_SERVICE_INSTANCE])
-        subprocess.run(["docker", "rm", "-f", FAKE_SERVICE_INSTANCE])
+        subprocess.run(["docker", "rm", "-f", FAKE_SERVICE_INSTANCE])        
+    else:
+        subprocess.run(["docker", "stop", FAKE_SERVICE_NAME])
+    print("done")
 
 @fixture(autouse=True, scope='session')
 def mea():
