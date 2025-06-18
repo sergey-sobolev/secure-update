@@ -24,7 +24,7 @@ execute in VS Code terminal window either
 - _make run_
 - or _docker-compose up_
 
-then open the requests.rest file in Visual Studio Code editor. If you have the REST client extention installed, you will see 'Send request' active text above GET or POST requests, you can click on it.
+then open the requests.rest file in Visual Studio Code editor. If you have the REST client extension installed, you will see 'Send request' active text above GET or POST requests, you can click on it.
 
 If you click on the application GET link, you shall see in the Response window (will open automatically) the following:
 
@@ -39,9 +39,35 @@ Connection: close
 Hello World! Application version 1.0.3u
 ```
 
-##### Update demo
+##### Update app demo 
 
-Run the POST request in manager section of requests.rest file, then if all services are up and running the following will happen:
+In the get update digest section of requests.rest file send the GET request, the result will look like the following:
+```
+HTTP/1.1 200 OK
+Server: Werkzeug/2.2.2 Python/3.8.13
+Date: Wed, 10 Aug 2022 08:35:36 GMT
+Content-Type: text/html; charset=utf-8
+Content-Length: 86
+Connection: close
+
+68b7d62551d332e395d2c302fc654d45cf836d576da628a06805d19113a89fea sha256 app-update.zip
+```
+- copy the sha256 digest (in the example above it is 68b7d62551d332e395d2c302fc654d45cf836d576da628a06805d19113a89fea) and paste in the update POST request in the manager section of requests.rest, see the digest field:
+
+```
+POST http://localhost:6000/update HTTP/1.1
+content-type: application/json
+auth: very-secure-token
+
+{
+    "url":"http://file_server:6001/download-update/app-update.zip", 
+    "target": "app", 
+    "digest": "68b7d62551d332e395d2c302fc654d45cf836d576da628a06805d19113a89fea", 
+    "digest_alg": "sha256"
+}
+```
+
+ Then Run the POST request in manager section of requests.rest file, then if all services are up and running the following will happen:
 - in the output window something like this will appear:
 ```
 HTTP/1.1 200 OK
@@ -80,16 +106,6 @@ To update the running application with own version of the file one shall do the 
 
 1. edit the app-update.py file
 2. in the get update digest section of requests.rest file send the GET request, the result will look like the following
-```
-HTTP/1.1 200 OK
-Server: Werkzeug/2.2.2 Python/3.8.13
-Date: Wed, 10 Aug 2022 08:35:36 GMT
-Content-Type: text/html; charset=utf-8
-Content-Length: 86
-Connection: close
-
-68b7d62551d332e395d2c302fc654d45cf836d576da628a06805d19113a89fea sha256 app-update.zip
-```
 3. copy the sha256 digest (in the example above it is 68b7d62551d332e395d2c302fc654d45cf836d576da628a06805d19113a89fea) and paste in the update POST request in the manager section of requests.rest, see the digest field:
 ```
 POST http://localhost:6000/update HTTP/1.1
@@ -113,7 +129,13 @@ app_with_updater_1  | [info] update result code 0
 ```
 5. send the application GET request and observe the updated application output
 
+### Tests
+- Tests execution integrated in _make all_ scenario, if you want to run it manually use _make test_ when system is running
 
 #### Troubleshooting
 
 - if kafka or zookeeper containers don't start, make sure you don't have containers with the same name. If you do, remove the old containers and run the demo again.
+- if you use a package manager other than apt, and trying _make all_ you need manually execute commands from the script sys-packages, after clear sys-packages section. Then try _make all_ again
+- if after _make all_ you see output like this: [Building wheel for confluent-kafka (pyproject.toml): started
+  Building wheel for confluent-kafka (pyproject.toml): finished with status 'error'
+Failed to build confluent-kafka] try to install librdkafka package. Then try _make all_ again
